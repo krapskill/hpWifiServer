@@ -8,6 +8,11 @@ var isMacintosh = true,
 	bytesPerSample = 2,
 	chunckSize = 1024,
 	frequency = 48000;
+	
+var clients = [],
+	datas = [],
+	datasTS = [];
+	
 
 /* **********
  logger winston 
@@ -31,6 +36,7 @@ fs = require('fs');
 extracting and timestamping tool
 *********** */
 var timeStamper = require('./timeStamper.js');
+
 
 
 
@@ -212,19 +218,19 @@ function handleBrowserRequests(data){
 /* **********
 Functions handeling connections with raspberries
 *********** */
+
 webSocketRasp.on('connection', function(ws) {
 
-	id=clients.length;
-	ws.channel = 0;
+	ws.id=clients.length;
+	console.log("this is client "+ws.id);
 	clients.push(ws);
-	logger.info("new client arrived. number of clients :" +clients.length);	
 	sendClients();
-	ws.on('close', function(ws) {
-		clients.splice(id,1);
-		logger.info('the client number '+id+' is removed from system, there are now '+clients.length+' clients');
+	
+	ws.on('close', function(o){
+		console.log("remove of client "+ws.id);
+		clients.splice(ws.id,1);
 		sendClients();
 	});
-	
 });
 
 
@@ -251,14 +257,6 @@ function broadcast(message){
 	}
 }
 
-
-/* **********
-core
-*********** */
-
-var clients = [],
-	datas = [],
-	datasTS = [];
 
 if (fs.existsSync('./config.json')) {
 	

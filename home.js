@@ -71,11 +71,11 @@ function updateList(){
 				document.getElementById("connectedClientsLabel").innerHTML = " no connected speakers";
 			}else if(response.nbClients==1){
 				document.getElementById("connectedClientsLabel").innerHTML = "1 connected speaker";
-				updateList()
 			}else{
 				document.getElementById("connectedClientsLabel").innerHTML = response.nbClients+" connected speakers";
-				updateList()
 			}
+			updateList()
+			
 		}
 
 		if(response.hasOwnProperty("filePath")){

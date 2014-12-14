@@ -21,11 +21,12 @@ function fileInfo(args) {
 }
 
 function extracting(status, fd, callback, args) {
+	console.log(fd);
 	logger.debug("function extracting called with args: " + JSON.stringify(args));
 
 	var nbChannels = args.nbChannels,
 		fileSize = (fs.fstatSync(fd))["size"],
-		rawSize =fileSize/nbChannels,
+		rawSize =fileSize,
 		result = [],
 		encodingBytes =args.encodingBytes,
 		nbSamples = fileSize / (nbChannels * encodingBytes);
@@ -49,6 +50,7 @@ function extracting(status, fd, callback, args) {
 
 function timeStamp(args) {
 
+
 	var stampDate = args.startingDate,
 		frequency = args.frequency,
 		chunckSize = args.chunckBytes * args.encodingBytes,
@@ -68,9 +70,10 @@ function timeStamp(args) {
 		var bufferData = new Buffer(chunckSize);	
 		bufferIn.copy(bufferData,0,start,start+chunckSize);
 		
-		stampDate = stampDate+Math.round((args.chunckBytes/frequency));
-		var bufferStamp = new Buffer(stampDate.toString(16));		
-		
+		stampDate = stampDate+ 3;
+		//stampDate = stampDate+Math.round((args.chunckBytes/frequency));
+		var bufferStamp = new Buffer(stampDate.toString());		
+		console.log(bufferStamp.length);
 		result[n] = new Buffer(bufferData.length + bufferStamp.length);
 		
 		bufferStamp.copy(result[n],0);
@@ -96,28 +99,7 @@ function extract(args, callback) {
 	});
 }
 
-function bufferizing(status, fd, callback, args) {
-	logger.debug("function extracting called with args: " + JSON.stringify(args));
 
-	var fileSize = (fs.fstatSync(fd))["size"];
-	var result = new Buffer(fileSize)
-	fs.readSync(fd, result);
-	
-	callback(result);
-}
-
-function bufferize(args, callback) {
-	console.log("function extract with args "+JSON.stringify(args));
-	fs.open(args.filePath, 'r', function(status, fd) {
-		if(status!=null){
-			callback(null);
-         	return;
-		}else{
-			bufferizing(status, fd, callback, args);
-		}
-	});
-}
-exports.bufferize = bufferize;
 exports.extract = extract;
 exports.timeStamp = timeStamp;
 exports.info = fileInfo;
