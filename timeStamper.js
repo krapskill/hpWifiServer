@@ -21,7 +21,6 @@ function fileInfo(args) {
 }
 
 function extracting(status, fd, callback, args) {
-	console.log(fd);
 	logger.debug("function extracting called with args: " + JSON.stringify(args));
 
 	var nbChannels = args.nbChannels,
@@ -71,9 +70,7 @@ function timeStamp(args) {
 		bufferIn.copy(bufferData,0,start,start+chunckSize);
 		
 		stampDate = stampDate+ 3;
-		//stampDate = stampDate+Math.round((args.chunckBytes/frequency));
 		var bufferStamp = new Buffer(stampDate.toString());		
-		console.log(bufferStamp.length);
 		result[n] = new Buffer(bufferData.length + bufferStamp.length);
 		
 		bufferStamp.copy(result[n],0);
@@ -87,6 +84,27 @@ function timeStamp(args) {
 	return result;
 }
 
+
+function bufferizing(status, fd, callback, args) {
+	logger.debug("function bufferizing called with args: " + JSON.stringify(args));
+	result = new Buffer((fs.fstatSync(fd))["size"]);
+	fs.readSync(fd, result);
+	callback(result);
+}
+
+function bufferize(args, callback) {
+	console.log("function bufferize with args "+JSON.stringify(args));
+	fs.open(args.filePath, 'r', function(status, fd) {
+		if(status!=null){
+			callback(null);
+         	return;
+		}else{
+			bufferizing(status, fd, callback, args);
+		}
+	});
+}
+
+
 function extract(args, callback) {
 	console.log("function extract with args "+JSON.stringify(args));
 	fs.open(args.filePath, 'r', function(status, fd) {
@@ -99,7 +117,7 @@ function extract(args, callback) {
 	});
 }
 
-
+exports.bufferize = bufferize;
 exports.extract = extract;
 exports.timeStamp = timeStamp;
 exports.info = fileInfo;

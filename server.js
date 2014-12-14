@@ -357,7 +357,7 @@ function sendBufferToClient(args){
 }
 
 function sendBeep(client){
-	console.log("function send client to client "+client);
+	console.log("function send beep to client "+client);
 	timeStamper.bufferize(
 		{
 			filePath : './beep.raw',
