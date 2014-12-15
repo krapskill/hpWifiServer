@@ -370,7 +370,14 @@ function pause(){
 }
 
 function sendBufferToClient(args){
-	clients[args.client].send(args.buffer,{binary:true,mask:true});
+	var oneRawLength = args.buffer[0].length;
+	var buff = new Buffer(args.buffer.length * oneRawLength);
+	for (var _raw = 0 ; _raw<args.buffer.length;_raw ++ ){
+		args.buffer[_raw].copy(buff,_raw * oneRawLength);
+	}
+
+	clients[args.client].send(buff,{binary:true,mask:true});
+	
 }
 
 function sendBeep(client){
