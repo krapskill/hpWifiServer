@@ -405,7 +405,7 @@ function sendBeep(client){
 				var startingDate = (new Date()).getTime() + 10000;
 				logger.debug("sound must start at "+startingDate.toString());
 				var buffer = timeStamper.timeStamp({
-					buffer:r,
+					buffer:r[0],
 					frequency:FREQUENCY,
 					startingDate:startingDate,
 					chunckBytes : CHUNCK_SIZE,

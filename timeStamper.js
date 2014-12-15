@@ -48,16 +48,9 @@ function extracting(status, fd, callback, args) {
 
 
 function timeStamp(args) {
-
-	console.log("function timeStamp called with args");
-	var org = {
-		stampDate : args.startingDate,
-		frequency : args.frequency,
-		chunckBytes : args.chunckBytes,
-		encodingBytes : args.encodingBytes
-	};
-	console.log(org);
-
+	
+	console.log("function timeStamp called");
+	
 	var stampDate = args.startingDate,
 		frequency = args.frequency,
 		chunckSize = args.chunckBytes * args.encodingBytes,
@@ -93,21 +86,16 @@ function timeStamp(args) {
 }
 
 
-function bufferizing(status, fd, callback, args) {
-	logger.debug("function bufferizing called with args: " + JSON.stringify(args));
-	result = new Buffer((fs.fstatSync(fd))["size"]);
-	fs.readSync(fd, result);
-	callback(result);
-}
-
 function bufferize(args, callback) {
+	
 	console.log("function bufferize with args "+JSON.stringify(args));
-	args.nbChannels = 1;
+	
 	fs.open(args.filePath, 'r', function(status, fd) {
 		if(status!=null){
 			callback(null);
          	return;
 		}else{
+			args.nbChannels = 1;
 			extracting(status, fd, callback, args);
 		}
 	});
