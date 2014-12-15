@@ -365,7 +365,12 @@ function loadFile(filePath,rawsNumber){
 
 
 function stop(){
-	var buff = new Buffer(2061);
+	var zeros = [];
+	for(var i=0;i<2061;i++){
+		zeros[i]=0;
+	}
+	var buff = new Buffer(zeros);
+	console.log(buff.toString());
 	for(var c=0;c<clients.length;c++){
 		clients[c].send(buff,{binary:true,mask:true});
 	}
