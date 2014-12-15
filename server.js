@@ -1,15 +1,16 @@
-var isMacintosh = true,
-	pathWSSpeakers = '/speaker',
+var	pathWSSpeakers = '/speaker',
 	pathWSBrowser = '/control',
 	WSPort = 8126,
 	testExtractingFilePath = './moving_crossing.raw',
+	FILE_PATH = './moving_crossing.raw',
 	nbChannelExtractingTestFile = 8,
 	testBufferizeingFilePath = './beep.raw',
-	bytesPerSample = 2,
-	chunckSize = 1024,
-	frequency = 48000;
-	
-var clients = [],
+	BYTES_PER_SAMPLE = 2,
+	RAWS_NUMBER = 8,
+	CHUNCK_SIZE = 1024,
+	FREQUENCY = 48000,
+	STARTING_DELAY = 10,
+	clients = [],
 	datas = [],
 	datasTS = [];
 	
@@ -37,38 +38,6 @@ extracting and timestamping tool
 *********** */
 var timeStamper = require('./timeStamper.js');
 
-
-
-
-if(isMacintosh){
-	
-	/* **********
-	A speaker , usefull function is play which take a buffer as entry
-	*********** */
-	var Speaker = require('speaker');
-
-	// Create the Speaker instance
-	var speaker = new Speaker({
-  		channels: 1,          // 2 channels
-  		bitDepth: bytesPerSample*8,         // 16-bit samples
-  		sampleRate: frequency     // 44,100 Hz sample rate
-	});
-
-	// PCM data from stdin gets piped into the speaker
-	function play(buff){
-		console.log("play of length : "+buff.length);
-		var stream = require("stream");
-
-		// Initiate the source
-		var bufferStream = new stream.Transform();
-		bufferStream.push(buff);
-
-		// Pipe it to something else 
-		bufferStream.pipe(speaker)
-	
-	}
-}
-
 /* **********
 Network communication
 *********** */
@@ -89,11 +58,45 @@ var connect = require('connect');
 var serveStatic = require('serve-static');
 connect().use(serveStatic(__dirname)).listen(8080);
 
+/* **********
+load of config file
+************/
+
+if (fs.existsSync('./config.json')) {
+	console.log("loading onfiguration file exist");
+	var file = require('./config.json');
+	console.log(file);
+	
+	if(file.hasOwnProperty('filePath')){
+		FILE_PATH = file.filePath;
+	}
+
+	if(file.hasOwnProperty('rawsNumber')){
+		RAWS_NUMBER = file.rawsNumber;
+	}
+
+	if(file.hasOwnProperty('startingDelay')){
+		STARTING_DELAY = file.startingDelay;
+	}
+
+	if(file.hasOwnProperty('chunckSize')){
+		CHUNCK_SIZE = file.chunckSize;
+	}
+
+	if(file.hasOwnProperty('frequency')){
+		FREQUENCY = file.frequency;
+	}
+
+	if(file.hasOwnProperty('bytesPerSample')){
+		BYTES_PER_SAMPLE = file.bytesPerSample;
+	}
+
+}
+
 
 /* **********
 USEFULL FUNCTIONS
-*********** */
-
+********** */
 function IsJsonString(str) {
     try {
         JSON.parse(str);
@@ -115,10 +118,17 @@ function returnToBrowser(data){
 	}
 }
 
-function saveConfig(data){
-	
+function saveConfig(){
+	data = {
+		rawsNumber : RAWS_NUMBER,
+		filePath : FILE_PATH,
+		startingDelay : STARTING_DELAY,
+		frequency : FREQUENCY,
+		chunckSize : CHUNCK_SIZE,
+		bytesPerSamples : BYTES_PER_SAMPLE
+	}
 	var outputFileName = './config.json';
-	fs.writeFile(outputFileName, JSON.stringify(data, null, 4), function(err) {
+	fs.writeFile(outputFileName, JSON.stringify(data), function(err) {
 	    if(err) {
 			logger.warn(err);
 	    } else {
@@ -127,29 +137,39 @@ function saveConfig(data){
 	});
 }
 
+
+
+
 /* **********
 Functions handeling orders et requests from browser client
 *********** */
-
-
 webSocketControl.on('connection', function(ws) {
 	// when a browser connect we save it to be able to send data whenever we need to
 	browser=ws;
 	
 	// we also send the last info we had
-	var r = {};
-	r.nbClients = clients.length;
-	r.filePath = filePath;
-	r.rawsNumber = rawsNumber;
-	r.clients = [];
+	var r = {
+		nbClients : clients.length,
+		filePath : FILE_PATH,
+		rawsNumber : RAWS_NUMBER,
+		startingDelay : STARTING_DELAY,
+		frequency :FREQUENCY ,
+		chunckSize : CHUNCK_SIZE,
+		bytesPerSample :BYTES_PER_SAMPLE,
+		clients : []
+	};
+	
+	
 	for(var cl=0;cl<clients.length;cl++){
 		r.clients[cl]={};
 		r.clients[cl].channel=clients[cl].channel;
 	}
+	
 	if(datas.length>0 && datas[0].length>0){
 		r.loaded = true;
 		r.length = datas[0].length;
 	}
+	
 	returnToBrowser(r);
 	
 	//On message, browser mus send json data and has property request to be processed
@@ -171,9 +191,9 @@ function handleBrowserRequests(data){
 		
 		//if localize request just send a beep to the concerned client
 	    case 'localize':
-	if(data.hasOwnProperty('client')){
-		sendBeep(data.client);
-	}
+		if(data.hasOwnProperty('client')){
+			sendBeep(data.client);
+		}
 	        break;
 	
 		//update means choose a new channel to the concerned client
@@ -199,6 +219,10 @@ function handleBrowserRequests(data){
 		// start stop
 		break;
 		case 'start':
+		if(data.hasOwnProperty('startingDelay')){
+			STARTING_DELAY = data.startingDelay;
+			saveConfig();
+		}
 			start();	
 		break;
 		case 'pause':
@@ -218,11 +242,10 @@ function handleBrowserRequests(data){
 /* **********
 Functions handeling connections with raspberries
 *********** */
-
 webSocketRasp.on('connection', function(ws) {
 
 	ws.id=clients.length;
-	console.log("this is client "+ws.id);
+	ws.channel = 0;
 	clients.push(ws);
 	sendClients();
 	
@@ -257,16 +280,6 @@ function broadcast(message){
 	}
 }
 
-
-if (fs.existsSync('./config.json')) {
-	
-	console.log("file exist");
-	var file = require('./config.json');
-	
-	filePath = file.filePath;
-	rawsNumber = file.rawsNumber;
-}
-
 function updateChannel(args){
 
 		clients[args.client].channel=args.channel;
@@ -290,15 +303,20 @@ function sendClients(){
 
 function sendAllFileToAllClients(){
 	for(var _cl = 0 ; _cl<clients.length ; _cl++){
+		
 		var _data = datasTS[clients[_cl].channel];
 		var oneRawLength = _data[0].length;
 		var buff = new Buffer(_data.length * oneRawLength)
+	
 		for (var _raw = 0 ; _raw<_data.length ;_raw ++ ){
 			_data[_raw].copy(buff,_raw * oneRawLength);
 		}
+	
 		clients[_cl].send(buff,{binary:true,mask:true});
 	}
 }
+
+
 /* **********
 TIMESTAMP INITIALISATION
 *********** */
@@ -316,7 +334,7 @@ function loadFile(filePath,rawsNumber){
 		{
 			nbChannels:rawsNumber,
 			filePath : filePath,
-			encodingBytes : bytesPerSample,
+			encodingBytes : BYTES_PER_SAMPLE,
 		},
 		
 		function(r){
@@ -326,7 +344,9 @@ function loadFile(filePath,rawsNumber){
 				logger.warn("error while loading file");
 				returnErrorToBrowser('error opening the file');
 			}else{
-				saveConfig({filePath:filePath,rawsNumber:rawsNumber});
+				FILE_PATH=filePath;
+				RAWS_NUMBER=rawsNumber
+				saveConfig();
 				datas = r;
 				
 				var dataToBrowser = {
@@ -345,7 +365,10 @@ function loadFile(filePath,rawsNumber){
 
 
 function stop(){
-	broadcast({data:'stop',binary:false});
+	var buff = new Buffer(2061);
+	for(var c=0;c<clients.length;c++){
+		clients[c].send(buff,{binary:true,mask:true});
+	}
 }
 
 function pause(){
@@ -374,10 +397,10 @@ function sendBeep(client){
 				logger.debug("sound must start at "+startingDate.toString());
 				var buffer = timeStamper.timeStamp({
 					buffer:r,
-					frequency:frequency,
+					frequency:FREQUENCY,
 					startingDate:startingDate,
-					chunckBytes : chunckSize,
-					encodingBytes : bytesPerSample,
+					chunckBytes : CHUNCK_SIZE,
+					encodingBytes : BYTES_PER_SAMPLE,
 				});
 				sendBufferToClient({client:client,buffer:buffer});
 			}
@@ -389,20 +412,22 @@ function start(){
 	
 	if(datas.length>0){
 	
-		var startingDate = (new Date()).getTime() + 10000;
+		var startingDate = (new Date()).getTime() + STARTING_DELAY*1000;
 		logger.debug("sound must start at "+startingDate.toString());
 	
 		for(var k=0;k<datas.length;k++){
 		
 			datasTS[k] = timeStamper.timeStamp({
 				buffer:datas[k],
-				frequency:frequency,
+				frequency:FREQUENCY,
 				startingDate:startingDate,
-				chunckBytes : chunckSize,
-				encodingBytes : bytesPerSample,
+				chunckBytes : CHUNCK_SIZE,
+				encodingBytes : BYTES_PER_SAMPLE,
 			});
+			
 		}
 	
+		console.log(datasTS.length);
 		sendAllFileToAllClients();
 	}
 
@@ -435,7 +460,7 @@ function testExtract(){
 		{
 			nbChannels:nbChannelExtractingTestFile,
 			filePath : testExtractingFilePath,
-			encodingBytes : bytesPerSample,
+			encodingBytes : BYTES_PER_SAMPLE,
 		},
 		
 		function(r){

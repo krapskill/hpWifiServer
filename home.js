@@ -86,6 +86,10 @@ function updateList(){
 			nbChannels = response.rawsNumber;
 			updateList();
 		}	
+			if(response.hasOwnProperty("startingDelay")){
+				document.getElementById("startingDelay").value=response.startingDelay;
+			}
+			
 		if(response.hasOwnProperty("loaded")){
 			document.getElementById("lecture").style.display = 'block';
 			nbChannel=response.nbChannels;
@@ -110,6 +114,7 @@ function askForConnectedClients(){
 function askForStart(){
 	var request = {};
 	request.request = 'start';
+	request.startingDelay = document.getElementById("startingDelay").value;
 	connection.send(JSON.stringify(request));
 }
 function askForPause(){

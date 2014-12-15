@@ -49,6 +49,14 @@ function extracting(status, fd, callback, args) {
 
 function timeStamp(args) {
 
+	console.log("function timeStamp called with args");
+	var org = {
+		stampDate : args.startingDate,
+		frequency : args.frequency,
+		chunckBytes : args.chunckBytes,
+		encodingBytes : args.encodingBytes
+	};
+	console.log(org);
 
 	var stampDate = args.startingDate,
 		frequency = args.frequency,
