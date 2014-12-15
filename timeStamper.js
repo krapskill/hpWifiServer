@@ -102,12 +102,13 @@ function bufferizing(status, fd, callback, args) {
 
 function bufferize(args, callback) {
 	console.log("function bufferize with args "+JSON.stringify(args));
+	args.nbChannels = 1;
 	fs.open(args.filePath, 'r', function(status, fd) {
 		if(status!=null){
 			callback(null);
          	return;
 		}else{
-			bufferizing(status, fd, callback, args);
+			extracting(status, fd, callback, args);
 		}
 	});
 }
