@@ -305,21 +305,6 @@ function sendClients(){
 }
 
 
-function sendAllFileToAllClients(){
-	for(var _cl = 0 ; _cl<clients.length ; _cl++){
-		
-		var _data = datasTS[clients[_cl].channel];
-		var oneRawLength = _data[0].length;
-		var buff = new Buffer(_data.length * oneRawLength)
-	
-		for (var _raw = 0 ; _raw<_data.length ;_raw ++ ){
-			_data[_raw].copy(buff,_raw * oneRawLength);
-		}
-	
-		clients[_cl].send(buff,{binary:true,mask:true});
-	}
-}
-
 
 /* **********
 TIMESTAMP INITIALISATION
@@ -389,7 +374,9 @@ function sendBufferToClient(args){
 }
 
 function sendBeep(client){
+	
 	console.log("function send beep to client "+client);
+
 	timeStamper.bufferize(
 		{
 			filePath : './beep.raw',
@@ -404,6 +391,7 @@ function sendBeep(client){
 			}else{
 				var startingDate = (new Date()).getTime() + 10000;
 				logger.debug("sound must start at "+startingDate.toString());
+			
 				var buffer = timeStamper.timeStamp({
 					buffer:r[0],
 					frequency:FREQUENCY,
@@ -411,9 +399,25 @@ function sendBeep(client){
 					chunckBytes : CHUNCK_SIZE,
 					encodingBytes : BYTES_PER_SAMPLE,
 				});
+				
 				sendBufferToClient({client:client,buffer:buffer});
 			}
 		});
+}
+
+function sendAllFileToAllClients(){
+	for(var _cl = 0 ; _cl<clients.length ; _cl++){
+		
+		var _data = datasTS[clients[_cl].channel];
+		var oneRawLength = _data[0].length;
+		var buff = new Buffer(_data.length * oneRawLength)
+	
+		for (var _raw = 0 ; _raw<_data.length ;_raw ++ ){
+			_data[_raw].copy(buff,_raw * oneRawLength);
+		}
+	
+		clients[_cl].send(buff,{binary:true,mask:true});
+	}
 }
 
 function start(){
