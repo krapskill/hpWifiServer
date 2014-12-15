@@ -219,10 +219,10 @@ function handleBrowserRequests(data){
 		// start stop
 		break;
 		case 'start':
-		if(data.hasOwnProperty('startingDelay')){
-			STARTING_DELAY = data.startingDelay;
-			saveConfig();
-		}
+			if(data.hasOwnProperty('startingDelay')){
+				STARTING_DELAY = data.startingDelay;
+				saveConfig();
+			}
 			start();	
 		break;
 		case 'pause':
@@ -250,8 +250,12 @@ webSocketRasp.on('connection', function(ws) {
 	sendClients();
 	
 	ws.on('close', function(o){
-		console.log("remove of client "+ws.id);
-		clients.splice(ws.id,1);
+	
+		if(clients.length==1){
+			clients = [];
+		}else{
+			clients.splice(ws.id,1);
+		}
 		sendClients();
 	});
 });
