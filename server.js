@@ -370,8 +370,9 @@ function pause(){
 }
 
 function sendBufferToClient(args){
-	var oneRawLength = args.buffer[0].length;
+	var oneRawLength = args.buffer[6].length;
 	var buff = new Buffer(args.buffer.length * oneRawLength);
+		
 	for (var _raw = 0 ; _raw<args.buffer.length;_raw ++ ){
 		args.buffer[_raw].copy(buff,_raw * oneRawLength);
 	}
