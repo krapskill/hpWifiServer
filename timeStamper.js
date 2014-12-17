@@ -21,11 +21,11 @@ function fileInfo(args) {
 }
 
 function extracting(status, fd, callback, args) {
-	logger.debug("function extracting called with args: " + JSON.stringify(args));
+	logger.debug("TimeStamper.js function extracting called with args: " + JSON.stringify(args));
 
 	var nbChannels = args.nbChannels,
 		fileSize = (fs.fstatSync(fd))["size"],
-		rawSize =fileSize,
+		rawSize =fileSize/nbChannels,
 		result = [],
 		encodingBytes =args.encodingBytes,
 		nbSamples = fileSize / (nbChannels * encodingBytes);
@@ -49,7 +49,13 @@ function extracting(status, fd, callback, args) {
 
 function timeStamp(args) {
 	
-	console.log("function timeStamp called");
+	var tobelog = {
+		stampDate:args.startingDate,
+		frequency:args.frequency,
+		chunckSize:args.chunckBytes * args.encodingBytes,
+		fileSize: args.buffer.length
+	};
+	console.log("function timeStamp called with args "+JSON.stringify(tobelog));
 	
 	var stampDate = args.startingDate,
 		frequency = args.frequency,
@@ -103,7 +109,7 @@ function bufferize(args, callback) {
 
 
 function extract(args, callback) {
-	console.log("function extract with args "+JSON.stringify(args));
+	logger.debug("TimeStamper.js trying to open file "+JSON.stringify(args));
 	fs.open(args.filePath, 'r', function(status, fd) {
 		if(status!=null){
 			callback(null);
