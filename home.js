@@ -83,24 +83,27 @@ function updateList(){
 				}, false);
 			listItem.appendChild(button);
 
-				var button = document.createElement("BUTTON");
-				var t = document.createTextNode("play");  
-				button.appendChild(t);
-				button.client=i;                        
-				button.addEventListener("click", function(e){
-					askForStartClient(e.srcElement.client)
-					}, false);
-				listItem.appendChild(button);
-				
-				
-					var button = document.createElement("BUTTON");
-					var t = document.createTextNode("stop");  
-					button.appendChild(t);
-					button.client=i;                        
-					button.addEventListener("click", function(e){
-						askForStopClient(e.srcElement.client)
+				if(players.length>0){
+					var buttonPlay = document.createElement("BUTTON");
+					var t = document.createTextNode("play");  
+					buttonPlay.appendChild(t);
+					buttonPlay.client=i;                        
+					buttonPlay.addEventListener("click", function(e){
+						askForStartClient(e.srcElement.client)
 						}, false);
-					listItem.appendChild(button);
+					listItem.appendChild(buttonPlay);
+
+
+						var buttonStop = document.createElement("BUTTON");
+						var t = document.createTextNode("stop");  
+						buttonStop.appendChild(t);
+						buttonStop.client=i;                        
+						buttonStop.addEventListener("click", function(e){
+							askForStopClient(e.srcElement.client)
+							}, false);
+						listItem.appendChild(buttonStop);
+				}
+				
 
 
 			listElement.appendChild(listItem);
@@ -213,14 +216,9 @@ function askForConnectedClients(){
 function askForStart(){
 	var request = {};
 	request.request = 'start';
-	request.startingDelay = document.getElementById("startingDelay").value;
 	connection.send(JSON.stringify(request));
 }
-function askForPause(){
-	var request = {};
-	request.request = 'pause';
-	connection.send(JSON.stringify(request));
-}
+
 function askForStop(){
 	var request = {};
 	request.request = 'stop';
@@ -270,24 +268,17 @@ function askForloadFile(){
 	connection.send(JSON.stringify(request));
 }
 
-function askForSendData(){
-	var request = {};
-	request.request = 'send';
-	request.raws = 'all'
-	connection.send(JSON.stringify(request));
-}
-
-function askForSendRaw(){
-	var request = {};
-	request.request = 'send';
-	request.raws = 1
-	connection.send(JSON.stringify(request));
-}
-
 function askForRemovePlayer(player){
 	var request = {};
 	request.request = 'remove';
 	request.player = player;
+	connection.send(JSON.stringify(request));
+}
+
+function askForUpdateStartingDelay(){
+	var request = {};
+	request.request = 'updateStartingDelay';
+	request.startingDelay = parseInt(document.getElementById("startingDelay").value);	
 	connection.send(JSON.stringify(request));
 }
 
@@ -302,6 +293,9 @@ if (startButton.addEventListener) startButton.addEventListener("click", askForSt
 	
 var stopButton = document.getElementById("stopButton");
 if (stopButton.addEventListener) stopButton.addEventListener("click", askForStop, false);
+
+var updateStartingDelay = document.getElementById("updateStartingDelay");
+if (updateStartingDelay.addEventListener) updateStartingDelay.addEventListener("click", askForUpdateStartingDelay, false);
 
 if(clients.length==0||players.length==0){
 	document.getElementById("lecture").style.display = 'none';

@@ -7,7 +7,7 @@ var	pathWSSpeakers = '/speaker',
 	DEFAULT_CHUNCK_SIZE = 1024,
 	DEFAULT_FREQUENCY = 48000,
 	DEFAULT_FILE_PATH = './moving_crossing.raw',
-	DEFAULT_STARTING_DELAY= 10000,
+	DEFAULT_STARTING_DELAY=10000,
 	
 	clients = [],
 	players = []
@@ -76,7 +76,7 @@ if (fs.existsSync('./config.json')) {
 	}
 
 	if(file.hasOwnProperty('rawsNumber')){
-		DEFAULT_RAWS_NUMBER = file.rawsNumber;
+		DEFAULT_RAWS_NUMBER = file.rawsNumber;	
 	}
 
 	if(file.hasOwnProperty('startingDelay')){
@@ -209,10 +209,6 @@ function handleBrowserRequests(data){
 			
 			break;
 		case 'start':
-			if(data.hasOwnProperty('startingDelay')){
-				DEFAULT_STARTING_DELAY = data.startingDelay;
-				saveConfig();
-			}
 			if(data.hasOwnProperty('client')){
 				startClient(data.client);
 			}else{
@@ -225,10 +221,9 @@ function handleBrowserRequests(data){
 		case 'stop':
 			if(data.hasOwnProperty('client')){
 				stop(data.client)
+			}else{
+				stop();
 			}
-			
-			stop();	
-			
 			break;
 		case 'clients':
 			sendClients();
@@ -242,7 +237,12 @@ function handleBrowserRequests(data){
 				sendPlayers();
 			}
 			break;
-	    default:
+	    case 'updateStartingDelay':
+		if(data.hasOwnProperty('startingDelay')){
+			DEFAULT_STARTING_DELAY = parseInt(data.startingDelay);
+			saveConfig();
+		}
+	default:
 	}
 }
 
@@ -347,7 +347,6 @@ function stop(client){
 	}
 	
 	var buff = new Buffer(zeros);
-	console.log(buff.toString());
 	
 	if(typeof client=='number'){
 		clients[client].send(buff,{binary:true,mask:true});
@@ -365,7 +364,7 @@ function startClient(client){
 	if(client<clients.length){
 		
 		var response = players[clients[client].sound].prepareForPlay({
-			startingDate : (new Date()).getTime(),
+			startingDate : (new Date()).getTime()+DEFAULT_STARTING_DELAY,
 			channels:[clients[client].channel]
 		});
 
@@ -412,7 +411,7 @@ function start(){
 				logger.debug("player "+pl+" is not used");
 			}else{
 				var response = players[pl].prepareForPlay({
-					startingDate : (new Date()).getTime()+DEFAULT_STARTING_DATE,
+					startingDate : (new Date()).getTime()+DEFAULT_STARTING_DELAY,
 					channels:channelsToTimeStamp[pl]
 				});
 
@@ -460,20 +459,6 @@ function sendBeep(client){
 		}
 }
 
-function sendAllFileToAllClients(){
-	for(var _cl = 0 ; _cl<clients.length ; _cl++){
-		
-		var _data = datasTS[clients[_cl].channel];
-		var oneRawLength = _data[0].length;
-		var buff = new Buffer(_data.length * oneRawLength)
-	
-		for (var _raw = 0 ; _raw<_data.length ;_raw ++ ){
-			_data[_raw].copy(buff,_raw * oneRawLength);
-		}
-	
-		clients[_cl].send(buff,{binary:true,mask:true});
-	}
-}
 
 function sendOneRawToClient(buffer,client){
 		
