@@ -1,3 +1,21 @@
+/* **********
+server.js
+
+Is the file to be launched. 
+
+Responsible for web-socket with raspberries and browser and static http server for browser
+
+when a browser connect the connection is stored in "browser"
+when the browser ask for loading sound it is extracted and loaded into "speakers" table
+when a new raspberry connect the connection is stored in "clients" table
+
+*********** */
+
+
+
+/* **********
+principal variables
+*********** */
 var	pathWSSpeakers = '/speaker',
 	pathWSBrowser = '/control',
 	WSPort = 8126,
@@ -101,6 +119,8 @@ if (fs.existsSync('./config.json')) {
 /* **********
 USEFULL FUNCTIONS
 ********** */
+
+//test if string is json
 function IsJsonString(str) {
     try {
         JSON.parse(str);
@@ -110,18 +130,21 @@ function IsJsonString(str) {
     return true;
 }
 
+//return error to browser
 function returnErrorToBrowser(errorStr){
 	if(browser){
 		browser.send(JSON.stringify({error:errorStr}));
 	}
 }
 
+//send object to browser
 function returnToBrowser(data){
 	if(browser){
 		browser.send(JSON.stringify(data));
 	}
 }
 
+//save global configuration into json file
 function saveConfig(){
 	data = {
 		rawsNumber : DEFAULT_RAWS_NUMBER,
@@ -209,43 +232,64 @@ function handleBrowserRequests(data){
 			
 			break;
 		case 'start':
+		
+			//if browser ask to start specific client
 			if(data.hasOwnProperty('client')){
 				startClient(data.client);
+				
+			//else browser ask for start all clients
 			}else{
 				start();	
 			}
 			break;
+			
 		case 'pause':
 			pause();	
 			break;
 		case 'stop':
+		
+			//if browser ask to stop specific client
 			if(data.hasOwnProperty('client')){
 				stop(data.client)
+				
+			//else browser ask for stop all clients
 			}else{
 				stop();
 			}
 			break;
+			
+		//if clients, browser want to know more about connected raspberries
 		case 'clients':
 			sendClients();
 			break;
+			
+		//if playser, browser ask to know more about loaded sounds
 		case 'players':
 			sendPlayers();
 			break;
+			
+		// browser ask for remove a sound
 		case 'remove':
 			if(data.hasOwnProperty('player')){
 				players.splice(data.player,1);
 				sendPlayers();
 			}
 			break;
+			
+		//browser ask for update starting delay
 	    case 'updateStartingDelay':
 		if(data.hasOwnProperty('startingDelay')){
 			DEFAULT_STARTING_DELAY = parseInt(data.startingDelay);
+			// we save the value into the json file
 			saveConfig();
 		}
 	default:
 	}
 }
 
+/* **********
+Function for send connected raspberries, the sound and the sound's channel associated to
+*********** */
 function sendClients(){
 	var response = {};
 	
@@ -260,6 +304,9 @@ function sendClients(){
 	returnToBrowser(response);	
 }
 
+/* **********
+Function for send to browser the loaded sounds
+*********** */
 function sendPlayers(){
 	var r = {
 		players : []
@@ -278,6 +325,9 @@ function sendPlayers(){
 	returnToBrowser(r);		
 }
 
+/* **********
+Function for creating a player. it means call the constructor of player and store it into players table
+*********** */
 function createPlayer(args) {
 	players.push(
 		player.Player(
@@ -288,11 +338,17 @@ function createPlayer(args) {
 			chunckSize:DEFAULT_CHUNCK_SIZE,
 			bytesPerSample:DEFAULT_BYTES_PER_SAMPLE,
 			rawsNumber:args.rawsNumber
-		},	function(r){
+		},	
+		
+		//function called once the sound is loaded (channels extraced)
+		function(r){
 			logger.debug("callback function of new player process with return : "+JSON.stringify(r));
 			
+			//if property loaded, the sound is well loaded so we inform the browser
 			if(r.loaded){
 				sendPlayers();
+				
+			//else there was a problem and an error is returned to the browser
 			}else{
 				logger.warn("error while loading file");
 				returnErrorToBrowser('error opening the file');
@@ -310,11 +366,16 @@ Functions handeling connections with raspberries
 *********** */
 webSocketRasp.on('connection', function(ws) {
 
+	//on connection we store an id to identificate each client and send store it into clients table
 	ws.id=clients.length;
 	ws.channel = 0;
 	ws.sound = 0;
 	clients.push(ws);
+	
+	//once it is done we inform the browser
 	sendClients();
+	
+	//if connetion close we remove the raspberry object from the table
 	ws.on('close', function(o){
 	
 		if(clients.length==1){
@@ -339,6 +400,9 @@ function updateSound(args){
 	}
 }
 
+/* **********
+Function for stop. stop is realised sending zeros only to client
+*********** */
 function stop(client){
 	var zeros = [];
 	
@@ -358,21 +422,28 @@ function stop(client){
 
 }
 
+/* **********
+Function for start specific client 
+*********** */
 function startClient(client){
 	logger.debug("start client");
 	
+	//just to verify client exists
 	if(client<clients.length){
 		
+		//first ask for timestamp
 		var response = players[clients[client].sound].prepareForPlay({
 			startingDate : (new Date()).getTime()+DEFAULT_STARTING_DELAY,
 			channels:[clients[client].channel]
 		});
 
+		//if timeStamping successed
 		if(response){
 			logger.debug("player "+clients[client].sound+" Timestamped channel "+clients[client].channel);
 		}
 		var player = players[clients[client].sound];
 		var dataTS = player.datasTS[clients[client].channel];
+	
 		sendOneRawToClient(dataTS,client);	
 		
 	}else{

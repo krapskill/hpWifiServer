@@ -1,4 +1,21 @@
+function require(script) {
+    $.ajax({
+        url: script,
+        dataType: "script",
+        async: false,           // <-- This is the key
+        success: function () {
+            // all good...
+        },
+        error: function () {
+            throw new Error("Could not load script " + script);
+        }
+    });
+}
+
+require('./spin.js')
+
 var connection = new WebSocket('ws://localhost:8126/control');
+
 var nbClients,
 	clients=[],
 	players=[]; 
@@ -26,7 +43,8 @@ function updateList(){
 	
 		for( var i =  0 ; i < numberOfListItems ; ++i){
 			var listItem = document.createElement("li");
-	    	listItem.innerHTML = listData[i];       
+	    	listItem.innerHTML = listData[i];     
+	  		listItem.id = 'listElementClients';
 
 
 			var comboBoxSound = document.createElement("select");
@@ -35,7 +53,7 @@ function updateList(){
 			for(var c=0;c<players.length;c++){
 				var option = document.createElement("option");
 				option.value = c;
-				option.label = "sound "+c;
+				option.label = players[c].name;
 				comboBoxSound.appendChild(option);
 			}
 		
@@ -60,7 +78,7 @@ function updateList(){
 				for(var c=0;c<players[clients[i].sound].rawsNumber;c++){
 					var option = document.createElement("option");
 					option.value = c;
-					option.label = "channel "+c;
+					option.label = "channel "+(c+1);
 					comboBoxChannel.appendChild(option);
 				}
 			
@@ -87,7 +105,8 @@ function updateList(){
 					var buttonPlay = document.createElement("BUTTON");
 					var t = document.createTextNode("play");  
 					buttonPlay.appendChild(t);
-					buttonPlay.client=i;                        
+					buttonPlay.client=i;
+					buttonPlay.cssStyle='.btn';               
 					buttonPlay.addEventListener("click", function(e){
 						askForStartClient(e.srcElement.client)
 						}, false);
@@ -121,7 +140,7 @@ function updateList(){
 			var listData = [];
 
 			for(var i=0;i<players.length;i++){
-				listData[i] = 'sound '+i+': '+players[i].name;
+				listData[i] = players[i].name;
 			}
 
 			var listElement = document.createElement("ul");
@@ -193,11 +212,21 @@ function updateList(){
 			}else{
 				document.getElementById("playersLoadedLabel").innerHTML = response.players.length+" loaded sounds";
 			}
+			document.getElementById("spin").style.display = 'none';
+			document.getElementById("all").style.display = 'block';
+			
 			updateList();
 			updatePlayersList();
 		}
 		if(response.hasOwnProperty("error")){
 			alert(response.error);
+			if(clients.length==0||players.length==0){
+				document.getElementById("lecture").style.display = 'none';
+			}else{
+				document.getElementById("lecture").style.display = 'block';
+			}
+				document.getElementById("spin").style.display = 'none';
+				document.getElementById("all").style.display = 'block';
 		}
 
 	};
@@ -261,7 +290,9 @@ function askForUpdateSound(client,sound){
 function askForloadFile(){
 	var request = {};
 	request.request = 'load';
-	document.getElementById("lecture").style.display = 'none';
+	document.getElementById("spin").style.display = 'block';
+	document.getElementById("all").style.display = 'none';
+	
 	request.filePath=document.getElementById("filePath").value;
 	request.rawsNumber=document.getElementById("rawsNumber").value;
 	request.name=document.getElementById("soundName").value;
@@ -284,9 +315,6 @@ function askForUpdateStartingDelay(){
 
 var loadButton = document.getElementById("load");
 if (loadButton.addEventListener) loadButton.addEventListener("click",askForloadFile, false);
-
-var updateButton = document.getElementById("updateButton");
-if (updateButton.addEventListener) updateButton.addEventListener("click", askForConnectedClients, false);
 	
 var startButton = document.getElementById("startButton");
 if (startButton.addEventListener) startButton.addEventListener("click", askForStart, false);
@@ -300,3 +328,25 @@ if (updateStartingDelay.addEventListener) updateStartingDelay.addEventListener("
 if(clients.length==0||players.length==0){
 	document.getElementById("lecture").style.display = 'none';
 }
+
+var opts = {
+  lines: 13, // The number of lines to draw
+  length: 20, // The length of each line
+  width: 20, // The line thickness
+  radius: 54, // The radius of the inner circle
+  corners: 1, // Corner roundness (0..1)
+  rotate: 43, // The rotation offset
+  direction: 1, // 1: clockwise, -1: counterclockwise
+  color: '#fff', // #rgb or #rrggbb or array of colors
+  speed: 1, // Rounds per second
+  trail: 36, // Afterglow percentage
+  shadow: true, // Whether to render a shadow
+  hwaccel: true, // Whether to use hardware acceleration
+  className: 'spinner', // The CSS class to assign to the spinner
+  zIndex: 2e9, // The z-index (defaults to 2000000000)
+  top: '50%', // Top position relative to parent
+  left: '50%' // Left position relative to parent
+};
+var target = document.getElementById('spin');
+var spinner = new Spinner(opts).spin(target);
+document.getElementById("spin").style.display = 'none';

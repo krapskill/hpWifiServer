@@ -1,75 +1,60 @@
 <!DOCTYPE html>
 <html>
+
+<head>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+
 <body>
-	
-	<h1>WIFI SPEAKERS NETWORK</h1>
+	<div id="header">
+		<h1>WIFI SPEAKERS NETWORK</h1>
+	</div>
 
-<div id="firstStep"
-	
-	<form>
-	File path:<br>
-	<input id="filePath" type="text" name="filepath">
-	<br>
-	</form>
-	
-	<form>
-	Channels number:<br>
-	<input id="rawsNumber" type="text" name="rawsNumber">
-	<br>
-	</form>
-	
-	
-	<form>
-	name:<br>
-	<input id="soundName" type="text">
-	<br>
-	</form>
-	
-	<button id="load" type="button" >add a new sound</button></div>
-	
-	<div><p id="playersLoadedLabel">sounds</p>
-	
-	<div id="playersListDiv"></div>
-	
-	
-</div>
-	
-<div id="secondStep">
+		
+	<div id = 'all'>
+	<div id="secondStep">
+		<p id="connectedClientsLabel"> connected speakers</p>
+		<div id="connectedListDiv"></div>
+	</div>
 
-	<div><p id="connectedClientsLabel"> connected speakers</p>
-		<button id="updateButton" type="button" >
-	update clients</button></div>
-	
-	
-	<div id="connectedListDiv"></div>
-	
-</div>
-	
-<div id="lecture">	
-	<p>Lecture</p>
-	
-	<button id="startButton" type="button" >
-	start</button>
-	
-	<button id="stopButton" type="button" >
-	stop</button>
-	
+	<div id="lecture">		
+		<p id="lectureLabel">Lecture</p>
+		<div >
+			<form> Starting delay (ms) :
+				<br><input id="startingDelay" type="text" name="startingDelay"><br>
+			</form>
+			<button class="btnUpdate" id="updateStartingDelay" type="button" >update</button>
+		</div>	
+		<div>
+		<button class="btnStart" id="startButton" type="button" >play</button>
+		</div>
+		<button class="btnStop" id="stopButton" type="button" >stop</button>
+	</div>
+	<div id="firstStep">
+		<p id="playersLoadedLabel">sounds</p>
+		<div id="playersListDiv"></div>
+		<form>File path:
+			<br><input id="filePath" type="text" name="filepath"><br>
+		</form>
+		<form>Channels number:
+			<br><input id="rawsNumber" type="text" name="rawsNumber"><br>
+		</form>
+		<form>name:
+			<br><input id="soundName" type="text"><br>
+		</form>
+		<button class="btnUpdate" id="load" type="button" >add a new sound</button>		
+	</div>
+	</div>
+		<div id="spin"></div>
+		<div id="sousTitre">
+			<h2>3IT research center, University of Sherbrooke, Sherbrooke</h2>	
+		</div>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+		
+	<script src="home.js"></script>
 
-	
-</div>
-
-<form>
-Starting delay (ms) :<br>
-<input id="startingDelay" type="text" name="startingDelay">
-<br>
-</form>
-
-<button id="updateStartingDelay" type="button" >
-update</button>
-
-<script src="home.js"></script>
-
-
+	</script>
 
 
 </body>
