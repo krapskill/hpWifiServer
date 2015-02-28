@@ -1,0 +1,118 @@
+
+
+body {
+	font: 100% Lucida Sans;
+	text-align:center;
+	background-color: #000000;
+	color:#ffffff;
+}
+
+#header{
+	font: 150% Lucida Sans;
+	line-height: 100px;
+	list-style-type: none;
+}
+
+
+#listElementClient{
+	line-height: 30px;
+}
+
+#connectedClientsLabel{
+	background-color: #CCD3D9;
+	color:#000000;
+}
+#lectureLabel{
+	background-color: #CCD3D9;
+	color:#000000;
+}
+#playersLoadedLabel{
+	background-color: #CCD3D9;
+	color:#000000;
+}
+#connectedListDiv{
+	line-height: 30px;
+	list-style-type: none;
+}
+#playersListDiv{
+	line-height: 30px;
+	list-style-type: none;
+}
+
+#sousTitre{
+	font: 50% Lucida Sans;
+	  font-weight: italic;
+}
+
+.btn {
+  color: #fff;
+  background: #000;
+  border: 1px solid #fff;
+	height:50px;
+	width:50px;
+	margin:10px;
+}
+ 
+.btn:hover {
+  color: #000;
+  background: #fff;
+}
+
+.btnStart {
+	margin:10px;
+  color: #38A629;
+  background: #000;
+  font-weight: bold;
+  border: 1px solid #38A629;
+	height:30px;
+	width:150px;
+}
+ 
+.btnStart:hover {
+  color: #38A629;
+  background: #fff;
+}
+
+#btnStart {
+	margin:10px;
+  color: #38A629;
+  background: #000;
+  font-weight: bold;
+  border: 1px solid #38A629;
+	height:30px;
+	width:150px;
+}
+ 
+#btnStart:hover {
+  color: #38A629;
+  background: #fff;
+}
+
+.btnStop {
+	margin:10px;
+  color: #f00;
+  background: #000;
+  font-weight: bold;
+  border: 1px solid #f00;
+	height:30px;
+	width:150px;
+}
+ 
+.btnStop:hover {
+  color: #f00;
+  background: #fff;
+}
+.btnUpdate {
+	margin:10px;
+  color: #fff;
+  background: #000;
+  font-weight: bold;
+  border: 1px solid #fff;
+	height:30px;
+	width:150px;
+}
+ 
+.btnUpdate:hover {
+  color: #000;
+  background: #fff;
+}
